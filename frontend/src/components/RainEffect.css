@@ -1,0 +1,134 @@
+.rain-scene {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* Rain Drops & Splashes (Unchanged) */
+.rain-drop {
+    position: absolute;
+    top: -100px;
+    width: 2px;
+    height: 25px;
+    background: rgba(255, 255, 255, 0.7);
+    animation: fall-slanted linear infinite;
+}
+
+.light .rain-drop {
+    width: 2px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.heavy .rain-drop {
+    width: 3px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+@keyframes fall-slanted {
+    0% {
+        transform: translate(0, 0) rotate(-20deg);
+    }
+
+    100% {
+        transform: translate(300px, 110vh) rotate(-20deg);
+    }
+}
+
+.drops-layer,
+.splashes-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+}
+
+.rain-splash {
+    position: absolute;
+    width: 8px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    animation: splash-pop linear infinite;
+    opacity: 0;
+    z-index: 3;
+}
+
+@keyframes splash-pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    20% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(2) translateY(-10px);
+        opacity: 0;
+    }
+}
+
+.rain-splash::before,
+.rain-splash::after {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+}
+
+.rain-splash::before {
+    left: -2px;
+    top: -2px;
+}
+
+.rain-splash::after {
+    right: -2px;
+    top: -2px;
+}
+
+.heavy.rain-scene::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    animation: dynamic-mist 2s ease-in-out infinite alternate;
+}
+
+@keyframes dynamic-mist {
+    0% {
+        opacity: 0.2;
+        transform: translateX(-10px);
+    }
+
+    100% {
+        opacity: 0.5;
+        transform: translateX(10px);
+    }
+}
+
+.heavy.rain-scene {
+    animation: screen-shake 0.2s infinite;
+}
+
+@keyframes screen-shake {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(1px, 1px);
+    }
+
+    100% {
+        transform: translate(0, 0);
+    }
+}

@@ -1,0 +1,33 @@
+.snow-scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 50;
+}
+
+.snowflakes-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.snowflake {
+  position: absolute;
+  top: -12px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1px;
+  box-shadow: 0 0 0 1px rgba(160, 200, 255, 0.15);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: snow-fall linear infinite;
+}
+
+@keyframes snow-fall {
+  0% {
+    transform: translate(0, -10px);
+  }
+
+  100% {
+    transform: translate(var(--drift, 0px), 110vh);
+  }
+}
