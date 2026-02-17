@@ -21,8 +21,9 @@ const PHASES = {
     FADE: 5
 };
 
-const PixelLightning = () => {
+const PixelLightning = ({ onFlash }) => {
     const canvasRef = useRef(null);
+    const lastPhaseRef = useRef(PHASES.IDLE);
     const animState = useRef({
         phase: PHASES.IDLE,
         timer: 0,
@@ -144,6 +145,14 @@ const PixelLightning = () => {
             if (time - lastTime > interval) {
                 lastTime = time;
 
+                // Check phase change for flash event
+                if (state.phase !== lastPhaseRef.current) {
+                    if (state.phase === PHASES.IGNITE && onFlash) {
+                        onFlash();
+                    }
+                    lastPhaseRef.current = state.phase;
+                }
+
                 switch (state.phase) {
                     case PHASES.IDLE:
                         if (Math.random() < 0.008) {
@@ -214,7 +223,7 @@ const PixelLightning = () => {
 
         frameId = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(frameId);
-    }, [draw, generateLightning, resetState]);
+    }, [draw, generateLightning, resetState, onFlash]);
 
     useEffect(() => {
         const canvas = canvasRef.current;

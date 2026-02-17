@@ -22,21 +22,6 @@ html {
   flex-direction: column;
 }
 
-/* 天气基础状态 */
-.scene-light {
-  filter: grayscale(0.2) brightness(0.9);
-  transition: filter 2s;
-}
-
-.scene-heavy {
-  filter: grayscale(0.4) brightness(0.75);
-  transition: filter 2s;
-}
-
-.scene-snow {
-  filter: grayscale(0.1) brightness(0.95) contrast(1.05);
-  transition: filter 2s;
-}
 /* 核心背景容器 */
 .parity-container {
   position: relative;
@@ -44,6 +29,25 @@ html {
   height: 100vh;
   overflow: hidden;
   background-color: #050505;
+  transition: filter 3s ease-in-out;
+}
+
+/* Weather darkening should affect background layers only (not UI/effects overlays). */
+.parity-container.weather-none {
+  filter: none;
+}
+
+.parity-container.weather-light,
+.parity-container.weather-flurry {
+  filter: grayscale(0.45) brightness(0.72) contrast(0.95);
+}
+
+.parity-container.weather-heavy {
+  filter: grayscale(0.68) brightness(0.4) contrast(1.06) saturate(0.72);
+}
+
+.parity-container.weather-snow {
+  filter: grayscale(0.62) brightness(0.44) contrast(1.08) saturate(0.75);
 }
 
 .layer {
@@ -55,14 +59,27 @@ html {
   background-repeat: repeat-x;
   background-size: auto 100%;
   background-position: center bottom;
+  border: none;
+  outline: none;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  will-change: background-position;
+  /* will-change: background-position; Removed to prevent artifacts */
+  transition: opacity 3s ease, filter 3s ease;
+  /* Ensure filter transitions smoothly by default */
+}
+
+/* Lightning flash effect: instant dark */
+.layer.flash-darken {
+  filter: brightness(0.15) grayscale(0.8) !important;
+  transition: none !important;
 }
 
 .layer-sky {
   z-index: 1;
-  animation: sky-scroll 200s linear infinite;
+  animation-name: sky-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: 200s;
 }
 
 .layer-mountains {
@@ -77,6 +94,50 @@ html {
   z-index: 5;
 }
 
+.layer-hills-normal,
+.layer-hills-snow {
+  z-index: 4;
+}
+
+.layer-grass-normal,
+.layer-grass-snow {
+  z-index: 5;
+}
+
+.weather-layer {
+  transition: opacity 3s ease;
+}
+
+.weather-layer-normal {
+  opacity: 1;
+}
+
+.weather-layer-snow {
+  opacity: 0;
+}
+
+.snow-right-grass-decoration {
+  position: absolute;
+  z-index: 6;
+  /* Bind scale to grass tile height (tiles are 300x320). */
+  --zyj-height: calc(100% * 28 / 320);
+  right: 6%;
+  bottom: calc(100% * 0.18 - var(--zyj-height) * 1.5);
+  height: var(--zyj-height);
+  width: auto;
+  pointer-events: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.snow-cover-active .weather-layer-normal {
+  opacity: 0;
+}
+
+.snow-cover-active .weather-layer-snow {
+  opacity: 1;
+}
+
 @keyframes sky-scroll {
   from {
     background-position: 0 0;
@@ -87,101 +148,386 @@ html {
   }
 }
 
-/* 播放器和控制器样式保持不变 */
-.pixel-audio-player {
-  position: absolute;
-  top: 30px;
-  right: 30px;
-  z-index: 100;
+/* ═══════════════════════════════════════════════════════════ */
+/*  播放器 - 初始状态：居中覆盖层 + 高斯模糊背景               */
+/* ═══════════════════════════════════════════════════════════ */
+.player-intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 12px;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeInOverlay 0.5s ease;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.player-intro-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 40px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 4px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    4px 4px 0px rgba(0, 0, 0, 0.4),
+    inset 0 0 20px rgba(255, 255, 255, 0.05);
+  animation: popIn 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.2);
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.player-intro-title {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+  letter-spacing: 2px;
+}
+
+.player-intro-play {
+  width: 64px;
+  height: 64px;
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(4px);
-  border: 4px solid #fff;
-  transition: border-color 2s ease;
-}
-
-.player-mode-light {
-  border-color: #aaccee;
-}
-
-.player-mode-heavy {
-  border-color: #778899;
-}
-
-.player-mode-snow {
-  border-color: #bfe8ff;
-}
-.play-button {
-  width: 48px;
-  height: 48px;
-  background: #ffcc00;
-  border: 4px solid #e6b800;
+  border: 4px solid #ffcc00;
   border-bottom-width: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.1s;
+  transition: transform 0.1s, background 0.2s;
 }
 
-.play-button .icon {
+.player-intro-play:hover {
+  background: rgba(255, 204, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.player-intro-play:active {
+  transform: translateY(2px);
+  border-bottom-width: 4px;
+}
+
+.player-intro-play-icon {
   width: 0;
   height: 0;
-  border-top: 10px solid transparent;
-  border-bottom: 10px solid transparent;
-  border-left: 15px solid #5c4033;
+  border-top: 14px solid transparent;
+  border-bottom: 14px solid transparent;
+  border-left: 20px solid #ffcc00;
   margin-left: 4px;
 }
 
-.play-button.playing .icon {
-  width: 14px;
-  height: 20px;
-  border: none;
-  border-left: 5px solid #5c4033;
-  border-right: 5px solid #5c4033;
+.player-intro-hint {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 3px;
+  animation: blink-hint 1.5s ease-in-out infinite;
 }
 
-.music-info {
-  text-align: left;
-  color: #fff;
-  text-shadow: 2px 2px 0px #000;
+@keyframes blink-hint {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
-.track-name {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 4px;
+/* ═══════════════════════════════════════════════════════════ */
+/*  播放器 - 播放状态：迷你条 (顶部中央偏上)                   */
+/* ═══════════════════════════════════════════════════════════ */
+.player-mini-bar {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: background 0.2s;
+  animation: slideDown 0.4s ease;
 }
 
-.status {
+.player-mini-bar:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateX(-50%) translateY(-40px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Animated equalizer bars */
+.player-mini-icon {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.player-mini-icon .bar {
+  width: 3px;
+  background: #ffcc00;
+  animation: eq-bounce 0.6s ease-in-out infinite alternate;
+}
+
+.player-mini-icon .bar.b1 {
+  height: 6px;
+  animation-delay: 0s;
+}
+
+.player-mini-icon .bar.b2 {
+  height: 10px;
+  animation-delay: 0.15s;
+}
+
+.player-mini-icon .bar.b3 {
+  height: 4px;
+  animation-delay: 0.3s;
+}
+
+@keyframes eq-bounce {
+  from {
+    height: 4px;
+  }
+
+  to {
+    height: 14px;
+  }
+}
+
+.player-mini-title {
+  font-family: 'Courier New', Courier, monospace;
   font-size: 12px;
-  color: #ffcc00;
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 1px 1px 0 #000;
 }
 
-.weather-controls {
+.player-mini-pause {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: 6px;
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  歌词 - 浮动单行 (屏幕中心偏上)                            */
+/* ═══════════════════════════════════════════════════════════ */
+.lyric-float {
+  position: fixed;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+  animation: lyricAppear 0.35s ease-out;
+
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 22px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+}
+
+@keyframes lyricAppear {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  Controls Panel & Character                                */
+/* ═══════════════════════════════════════════════════════════ */
+.controls-panel {
   position: absolute;
   top: 30px;
   left: 30px;
   z-index: 100;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.weather-controls button {
+.weather-controls,
+.orientation-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.weather-controls button,
+.orientation-controls button {
   font-family: 'Courier New', Courier, monospace;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 4px solid #fff;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  border: 3px solid #fff;
   color: #fff;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.weather-controls button.active {
+.orientation-controls button {
+  font-size: 10px;
+  padding: 5px 10px;
+}
+
+.weather-controls button.active,
+.orientation-controls button.active {
   background: #ffcc00;
   color: #5c4033;
   border-color: #e6b800;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0px rgba(0, 0, 0, 0.3);
+}
+
+.character-container {
+  position: absolute;
+  left: 52%;
+  bottom: 19.5%;
+  /* Base placement */
+  transform: translateX(-50%);
+  pointer-events: none;
+  /* Add a subtle shadow under the character */
+  filter: drop-shadow(0 10px 4px rgba(0, 0, 0, 0.2));
+}
+
+.pixel-character {
+  /* Animation for slight floating or jump if needed */
+  animation: char-float 12s ease-in-out infinite;
+}
+
+@keyframes char-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* 积雪层基础样式 */
+.snow-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position: center bottom;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* 山脉积雪 - 只在山峰顶部 */
+.snow-mountains {
+  z-index: 3;
+  background: linear-gradient(to bottom,
+      transparent 35%,
+      transparent 55%,
+      rgba(255, 255, 255, 0.3) 56%,
+      rgba(255, 255, 255, 0.5) 58%,
+      rgba(255, 255, 255, 0.3) 60%,
+      transparent 62%,
+      transparent 100%),
+    linear-gradient(to bottom,
+      transparent 40%,
+      transparent 65%,
+      rgba(255, 255, 255, 0.4) 66%,
+      rgba(255, 255, 255, 0.6) 68%,
+      rgba(255, 255, 255, 0.4) 70%,
+      transparent 72%,
+      transparent 100%);
+}
+
+/* 山丘积雪 - 在山坡上 */
+.snow-hills {
+  z-index: 4;
+  background: linear-gradient(to bottom,
+      transparent 50%,
+      rgba(255, 255, 255, 0.2) 55%,
+      rgba(255, 255, 255, 0.6) 60%,
+      rgba(255, 255, 255, 0.8) 65%,
+      rgba(255, 255, 255, 0.9) 70%,
+      rgba(255, 255, 255, 0.9) 100%);
+}
+
+/* 地面积雪 - 完全覆盖 */
+.snow-ground {
+  z-index: 6;
+  background:
+    /* 雪的阴影深度 */
+    linear-gradient(to bottom,
+      rgba(200, 210, 220, 0.3) 0%,
+      rgba(220, 230, 240, 0.5) 15%,
+      rgba(255, 255, 255, 0.95) 30%,
+      rgba(255, 255, 255, 1) 100%),
+    /* 雪的纹理 */
+    repeating-linear-gradient(90deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 4px);
+  filter: brightness(1.05) contrast(1.02);
+}
+
+/* 针对雪天场景的特定图层样式 - 模拟积雪效果 */
+.parity-container.weather-snow .layer-mountains {
+  filter: brightness(2) grayscale(0.8) contrast(1.1);
+  transition: filter 3s;
 }

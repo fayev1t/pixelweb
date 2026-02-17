@@ -4,6 +4,19 @@
   pointer-events: none;
   overflow: hidden;
   z-index: 50;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 3s ease-in-out, visibility 3s ease-in-out;
+}
+
+.snow-scene.active {
+  opacity: 0.8;
+  /* Flurry opacity */
+}
+
+/* Specific mode tweaks if needed */
+.snow-scene.flurry {
+  /* Default active handles this */
 }
 
 .snowflakes-layer {
