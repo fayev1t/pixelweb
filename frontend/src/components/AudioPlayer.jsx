@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import musicFile from '../assets/music/welcomeandgoodbye.mp3';
+import { MUSIC_FILE as musicFile, LRC_FILE as lrcFile } from '../constants/assets';
 import { parseLRC } from '../utils/lrcParser.js';
 
-const AudioPlayer = ({ weather, onTimeUpdate, showFlower }) => {
+const AudioPlayer = ({ weather, onTimeUpdate, showFlower, isLoaded, loadingProgress }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef(null);
     const [lyrics, setLyrics] = useState([]);
@@ -11,11 +11,9 @@ const AudioPlayer = ({ weather, onTimeUpdate, showFlower }) => {
 
     // Load lyrics
     useEffect(() => {
-        import('../assets/music/welcomeandgoodbye.lrc?url').then(module => {
-            fetch(module.default)
-                .then(r => r.text())
-                .then(text => setLyrics(parseLRC(text)));
-        });
+        fetch(lrcFile)
+            .then(r => r.text())
+            .then(text => setLyrics(parseLRC(text)));
     }, []);
 
     const togglePlay = () => {
@@ -155,14 +153,23 @@ const AudioPlayer = ({ weather, onTimeUpdate, showFlower }) => {
                 <div className="player-intro-overlay">
                     <div className="player-intro-box">
                         <div className="player-intro-title">♪ Welcome & Goodbye ♪</div>
-                        <button
-                            className="player-intro-play"
-                            style={{ borderColor: getStatusColor() }}
-                            onClick={togglePlay}
-                        >
-                            <div className="player-intro-play-icon"></div>
-                        </button>
-                        <div className="player-intro-hint">CLICK TO PLAY</div>
+                        {!isLoaded ? (
+                            <div className="player-loading-container">
+                                <div className="player-loading-bar" style={{ width: `${loadingProgress}%` }}></div>
+                                <div className="player-loading-text">{Math.floor(loadingProgress)}%</div>
+                            </div>
+                        ) : (
+                            <>
+                                <button
+                                    className="player-intro-play"
+                                    style={{ borderColor: getStatusColor() }}
+                                    onClick={togglePlay}
+                                >
+                                    <div className="player-intro-play-icon"></div>
+                                </button>
+                                <div className="player-intro-hint">CLICK TO PLAY</div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

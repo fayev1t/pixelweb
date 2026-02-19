@@ -6,6 +6,7 @@ import SnowEffect from './components/SnowEffect';
 import PixiSnowEffect from './components/PixiSnowEffect';
 import UmbrellaShield from './components/UmbrellaShield';
 import './App.css';
+import { ALL_ASSETS } from './constants/assets';
 
 const WEATHER_SCHEDULE = [
   { time: 0, weather: 'none' },
@@ -18,7 +19,42 @@ const WEATHER_SCHEDULE = [
 
 function App() {
   const [weather, setWeather] = useState('none');
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
   const lastWeatherRef = useRef('none');
+
+  // 资源加载逻辑
+  useEffect(() => {
+    let loadedCount = 0;
+    const totalCount = ALL_ASSETS.length;
+
+    const updateProgress = () => {
+      loadedCount++;
+      setLoadingProgress((loadedCount / totalCount) * 100);
+      if (loadedCount === totalCount) {
+        setIsLoaded(true);
+      }
+    };
+
+    ALL_ASSETS.forEach(asset => {
+      if (asset.type === 'image') {
+        const img = new Image();
+        img.src = asset.url;
+        img.onload = updateProgress;
+        img.onerror = updateProgress;
+      } else if (asset.type === 'audio') {
+        const audio = new Audio();
+        audio.src = asset.url;
+        audio.oncanplaythrough = updateProgress;
+        audio.onerror = updateProgress;
+      } else if (asset.type === 'text') {
+        fetch(asset.url)
+          .then(updateProgress)
+          .catch(updateProgress);
+      }
+    });
+  }, []);
+
 
   // 状态控制
   const [showFlower, setShowFlower] = useState(false);
@@ -139,7 +175,13 @@ function App() {
       <SnowEffect mode={weather} isSheltered={isSheltered} />
       <PixiSnowEffect mode={weather} />
       <UmbrellaShield isActive={isSheltered} weather={weather} />
-      <AudioPlayer weather={weather} onTimeUpdate={handleAudioTimeUpdate} showFlower={showFlower} />
+      <AudioPlayer
+        weather={weather}
+        onTimeUpdate={handleAudioTimeUpdate}
+        showFlower={showFlower}
+        isLoaded={isLoaded}
+        loadingProgress={loadingProgress}
+      />
     </div>
   );
 }

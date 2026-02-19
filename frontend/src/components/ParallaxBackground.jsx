@@ -1,27 +1,10 @@
 import React from 'react';
-import sky from '../assets/background/LandingPage_Sky.webp';
-import mountains from '../assets/background/LandingPage_Mountain.webp';
-import zyj from '../assets/background/zyj.png';
-import poppyImg from '../assets/background/flowers/Invicon_Poppy.png';
-import azureBluetImg from '../assets/background/flowers/Invicon_Azure_Bluet.png';
-import heartIcon from '../assets/hearticon.svg';
+import { sky, mountains, zyj, poppyImg, azureBluetImg, heartIcon, grassNormal, hillsNormal, grassSnow, hillsSnow, allFlowers, bodyIdle, hairIdle, outfitIdle } from '../constants/assets';
 import AnimatedLayer from './AnimatedLayer';
 import PixelLightning from './PixelLightning';
 import PixelCharacter from './PixelCharacter';
-
 import '../App.css';
 
-// Import character assets
-import bodyIdle from '../assets/background/character/body-idle.png';
-import hairIdle from '../assets/background/character/hair1-idle.png';
-import outfitIdle from '../assets/background/character/outfit1-idle.png';
-
-// Import PNG sequences
-const grassNormal = import.meta.glob('../assets/background/LandingPage_Grass_png/*.png', { eager: true, query: '?url', import: 'default' });
-const hillsNormal = import.meta.glob('../assets/background/LandingPage_Hills_png/*.png', { eager: true, query: '?url', import: 'default' });
-const grassSnow = import.meta.glob('../assets/background/grass_snow/*.png', { eager: true, query: '?url', import: 'default' });
-const hillsSnow = import.meta.glob('../assets/background/hill_snow/*.png', { eager: true, query: '?url', import: 'default' });
-const allFlowers = import.meta.glob('../assets/background/flowers/*.png', { eager: true, query: '?url', import: 'default' });
 
 const FLOWER_DESCRIPTIONS = {
     'Invicon_Dandelion.png': '蒲公英（Dandelion）',
