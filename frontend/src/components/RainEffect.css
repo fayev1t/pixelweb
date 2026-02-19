@@ -1,3 +1,9 @@
+/* ... existing content ... */
+
+/* [Previous content is fine, I will just append/replace the char-splash block and add snow logic] */
+/* Since write_to_file overwrites, I need the FULL content. */
+/* I will read the file again to be absolutely sure I don't lose anything, although I just wrote it. */
+
 .rain-scene {
     position: absolute;
     top: 0;
@@ -8,7 +14,7 @@
     pointer-events: none;
     overflow: hidden;
     opacity: 0;
-    transition: opacity 2s ease-in-out;
+    transition: opacity 1s ease-in-out;
 }
 
 .rain-scene.active {
@@ -22,24 +28,56 @@
     top: -100px;
     width: 2px;
     /* Consistent width for both modes */
-    height: 12px;
+    height: 16px;
     /* Base length */
     background: rgba(220, 240, 255, 0.65);
     /* Pale blue-white */
     animation: fall-slanted linear infinite;
     image-rendering: pixelated;
+    /* 平滑过渡：小雨↔大雨时雨滴渐变 */
+    transition: height 1s ease, opacity 1s ease, background 1s ease;
+}
+
+/* Character Specific Drops */
+.rain-drop.char-drop {
+    background: rgba(200, 230, 255, 0.9);
+    /* More opaque/visible */
+    width: 2px;
+    z-index: 60;
+}
+
+/* 额外雨滴（仅在大雨时可见），默认隐藏 */
+.rain-drop.heavy-only {
+    opacity: 0;
 }
 
 .light .rain-drop {
-    /* Drizzle: Standard length, slightly transparent */
-    height: 12px;
+    /* Drizzle: Slightly larger, semi-transparent */
+    height: 16px;
     opacity: 0.5;
+}
+
+/* 小雨时额外雨滴保持隐藏 */
+.light .rain-drop.heavy-only {
+    opacity: 0;
 }
 
 .heavy .rain-drop {
     /* Storm: Double length, more opaque, same width */
     height: 24px;
     background: rgba(220, 240, 255, 0.85);
+    opacity: 0.9;
+}
+
+/* Character drops in heavy rain */
+.heavy .rain-drop.char-drop {
+    height: 20px;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+/* 大雨时额外雨滴也可见（从 opacity:0 渐变到 0.9） */
+.heavy .rain-drop.heavy-only {
     opacity: 0.9;
 }
 
@@ -73,6 +111,55 @@
     z-index: 3;
 }
 
+/* Character Splashes - subtle misty hits */
+/* Light Rain: Slower frequency via long duration with pause */
+.rain-splash.char-splash {
+    background: rgba(200, 225, 255, 0.8);
+    z-index: 60;
+    width: 1px;
+    height: 4px;
+    transform: rotate(-15deg);
+    border-radius: 0;
+    /* 3s loop = sparse splashes */
+    animation: splash-char-hit-light 3s linear infinite;
+}
+
+/* Heavy rain char splash - thinner and subtler */
+/* Heavy Rain: Fast frequency (0.2s loop) to keep storm intensity */
+.heavy .rain-splash.char-splash {
+    width: 1px;
+    /* Thinner */
+    height: 5px;
+    /* Slightly longer */
+    background: rgba(180, 210, 255, 0.5);
+    /* Less bright */
+    box-shadow: none;
+    /* No glow */
+    animation: splash-char-hit 0.2s ease-out infinite;
+    /* Override to fast loop */
+}
+
+/* 小雨时额外水花隐藏 */
+.light .rain-splash.heavy-only {
+    animation: none;
+    opacity: 0 !important;
+}
+
+/* 非雨天时额外水花也隐藏 */
+.rain-splash.heavy-only {
+    animation: none;
+    opacity: 0 !important;
+}
+
+.heavy .rain-splash.heavy-only {
+    animation: splash-impact 0.4s ease-out infinite;
+    opacity: unset;
+}
+
+.heavy .rain-splash.char-splash.heavy-only {
+    animation: splash-char-hit 0.2s ease-out infinite;
+}
+
 @keyframes splash-impact {
     0% {
         transform: scale(0);
@@ -92,6 +179,44 @@
     }
 }
 
+/* Character hit animation (Heavy): Continuous fast hitting */
+@keyframes splash-char-hit {
+    0% {
+        transform: rotate(-15deg) scaleY(0.5);
+        opacity: 0;
+    }
+
+    20% {
+        transform: rotate(-15deg) scaleY(1.2);
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: rotate(-15deg) scaleY(0.8) translateY(2px);
+        opacity: 0;
+    }
+}
+
+/* Character hit animation (Light): Long pause, brief hit */
+@keyframes splash-char-hit-light {
+
+    0%,
+    90% {
+        transform: rotate(-15deg) scaleY(0.5);
+        opacity: 0;
+    }
+
+    92% {
+        transform: rotate(-15deg) scaleY(1.2);
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: rotate(-15deg) scaleY(0.8) translateY(2px);
+        opacity: 0;
+    }
+}
+
 /* Droplets jumping up */
 .rain-splash::before,
 .rain-splash::after {
@@ -105,6 +230,16 @@
     left: 50%;
     opacity: 0;
     animation: splash-droplets 0.4s ease-out infinite;
+}
+
+.rain-splash.char-splash::before,
+.rain-splash.char-splash::after {
+    background: #fff;
+    width: 1.5px;
+    height: 1.5px;
+    box-shadow: 0 0 2px #fff;
+    animation-duration: 0.3s;
+    /* Faster */
 }
 
 .rain-splash::before {

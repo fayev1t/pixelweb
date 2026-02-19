@@ -1,0 +1,10 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Handle -->
+  <rect x="15" y="16" width="2" height="12" fill="#8B4513"/>
+  <rect x="13" y="26" width="4" height="2" fill="#8B4513"/>
+  
+  <!-- Canopy (Red) -->
+  <path d="M4 16H28V14H26V12H24V10H20V8H12V10H8V12H6V14H4V16Z" fill="#FF4444"/>
+  <!-- Highlight -->
+  <path d="M12 8H20V10H24V12H26V14H28V16H26V14H24V12H20V10H12V8Z" fill="#FF8888" opacity="0.3"/>
+</svg>

@@ -86,22 +86,24 @@ const PixiSnowEffect = ({ mode }) => {
                     const { isActive, isFlurry, isSnow } = weatherStateRef.current;
 
                     snowflakes.forEach((flake, index) => {
-                        // Optimization: Hide flakes if index > limit for flurry
-                        // Actually, let applyPixelMovement handle density culling.
-                        // Here we just handle global fade in/out.
                         const isGlobalActive = isActive;
 
+                        // Fade rate: fast in, much slower out for gradual transition
+                        const fadeRate = isGlobalActive ? 0.1 : 0.012;
                         // Smoothly fade alpha based on global state
                         const targetAlpha = isGlobalActive ? (flake.baseAlpha * (0.84 + 0.16 * Math.sin(currentTime * 0.0018 + flake.phase))) : 0;
 
                         flake.currentAlpha = flake.currentAlpha !== undefined ? flake.currentAlpha : 0;
-                        flake.currentAlpha += (targetAlpha - flake.currentAlpha) * 0.1;
+                        flake.currentAlpha += (targetAlpha - flake.currentAlpha) * fadeRate;
 
                         // If currentAlpha is very low and we're not active, we can skip further processing for this flake
                         if (flake.currentAlpha < 0.01 && !isGlobalActive) {
                             flake.sprite.visible = false; // Ensure it's hidden
                             return;
                         }
+
+                        // Speed reduction factor when fading out (particles slow down as they fade)
+                        const fadeSpeedFactor = isGlobalActive ? 1.0 : Math.max(0.05, flake.currentAlpha / (flake.baseAlpha || 1));
 
                         // Helper for pixel movement
                         const applyPixelMovement = (speedMult, density, scaleMult) => {
@@ -123,10 +125,10 @@ const PixiSnowEffect = ({ mode }) => {
                             // No rotation
                             flake.sprite.rotation = 0;
 
-                            // Move
+                            // Move (apply fadeSpeedFactor for gradual slowdown)
                             const depth = flake.originalScale;
-                            flake.y += flake.speed * deltaTime * 60 * depth * speedMult;
-                            flake.x += flake.windSpeed * deltaTime * 20 * depth * speedMult;
+                            flake.y += flake.speed * deltaTime * 60 * depth * speedMult * fadeSpeedFactor;
+                            flake.x += flake.windSpeed * deltaTime * 20 * depth * speedMult * fadeSpeedFactor;
 
                             // Minimal jitter
                             if (Math.random() > 0.9) {
@@ -149,14 +151,14 @@ const PixiSnowEffect = ({ mode }) => {
                             return; // Skip normal movement
                         }
 
-                        if (isSnow) {
-                            // Heavy Snow: Slower (reduced 20%), HUGE, Slightly less dense (80%)
-                            // Scale up by 1.5x, Speed 1.6x, 1600 particles
-                            applyPixelMovement(1.6, 1600, 1.5);
+                        // Use last active mode's params when fading out
+                        const useSnowParams = isSnow || (!isGlobalActive && weatherStateRef.current._lastMode === 'snow');
+
+                        if (useSnowParams) {
+                            // Heavy Snow: Speed +20%, Density +20%
+                            applyPixelMovement(1.92, 1920, 1.5);
                         } else {
                             // Flurry: Standard Pixel Snow
-                            // Density 1800
-                            // Updated: Particle size +20% (1.2), Speed -20% (1.5 -> 1.2)
                             applyPixelMovement(1.2, 1800, 1.2);
                         }
 
@@ -264,7 +266,13 @@ const PixiSnowEffect = ({ mode }) => {
     }, []); // Run once on mount
 
     useEffect(() => {
+        const prev = weatherStateRef.current;
+        // Remember last active mode for fade-out transition
+        if (prev.isSnow) prev._lastMode = 'snow';
+        else if (prev.isFlurry) prev._lastMode = 'flurry';
+
         weatherStateRef.current = {
+            ...prev,
             isActive: !!isActive,
             isFlurry: !!isFlurry,
             isSnow: !!isSnow,

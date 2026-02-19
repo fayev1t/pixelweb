@@ -1,17 +1,13 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import './RainEffect.css';
 
-const RainEffect = ({ mode }) => {
+const RainEffect = ({ mode, isSheltered }) => {
     // Keep track if we should show rain (light or heavy)
     // We render always, but toggle a class for opacity transition
     const isActive = mode === 'light' || mode === 'heavy';
     const isHeavy = mode === 'heavy';
 
-    // We only update drops/splashes when mode changes significantly between light/heavy
-    // or when first mounting.
 
-    const dropCount = isHeavy ? 400 : 200;
-    const splashCount = isHeavy ? 60 : 30;
 
     const drops = useMemo(() => Array.from({ length: 400 }).map((_, i) => {
         // Feature: Depth-based culling
@@ -37,9 +33,6 @@ const RainEffect = ({ mode }) => {
         }
 
         const fallY = `${fallYVal}vh`;
-        // Maintain slanted angle (~20deg)
-        // Tan(20) ~ 0.36. If Y is 100vh (approx 800px), X is approx 290px.
-        // Let's use a consistent multiplier relative to Y travel.
         const fallX = `${fallYVal * 2.5}px`;
 
         return {
@@ -62,16 +55,28 @@ const RainEffect = ({ mode }) => {
         scale: 0.5 + Math.random() * 0.5
     })), []); // Calculate once
 
+    // Character splashes (on head/shoulders) -> Positioned carefully around character at left 52%, bottom ~20-28%
+    const charSplashes = useMemo(() => Array.from({ length: 20 }).map((_, i) => ({
+        id: `char-splash-${i}`,
+        // Character center is 52%. Width is small. Range 51.5% - 52.5%
+        left: 51.5 + Math.random() * 1.5,
+        // Character bottom is 19.5%. Height approx ~10%. Range 20% - 28%
+        bottom: 20 + Math.random() * 8,
+        delay: Math.random() * 2,
+        duration: 0.1 + Math.random() * 0.2, // Very fast flashes
+        scale: 0.8 + Math.random() * 0.4
+    })), []);
+
     return (
         <div className={`rain-scene ${isActive ? 'active' : ''} ${mode}`}>
             <div className="drops-layer">
-                {drops.slice(0, dropCount).map((drop) => (
+                {drops.map((drop, index) => (
                     <div
                         key={drop.id}
-                        className="rain-drop"
+                        className={`rain-drop ${index >= 200 ? 'heavy-only' : ''}`}
                         style={{
                             left: `${drop.left}%`,
-                            animationDuration: `${isHeavy ? drop.duration : drop.duration * 1.5}s`,
+                            animationDuration: `${drop.duration}s`,
                             animationDelay: `${drop.delay}s`,
                             '--drop-opacity': drop.opacity,
                             '--fall-y': drop.fallY,
@@ -82,15 +87,28 @@ const RainEffect = ({ mode }) => {
             </div>
 
             <div className="splashes-layer">
-                {splashes.slice(0, splashCount).map((splash) => (
+                {splashes.map((splash, index) => (
                     <div
                         key={splash.id}
-                        className="rain-splash"
+                        className={`rain-splash ${index >= 30 ? 'heavy-only' : ''}`}
                         style={{
                             left: `${splash.left}%`,
                             bottom: `${splash.bottom}%`,
                             animationDelay: `${splash.delay}s`,
                             animationDuration: `${splash.duration}s`,
+                            transform: `scale(${splash.scale})`
+                        }}
+                    />
+                ))}
+                {/* Character Splashes - subtle impacts on the character */}
+                {!isSheltered && charSplashes.map((splash, index) => (
+                    <div
+                        key={splash.id}
+                        className={`rain-splash char-splash ${index >= 5 ? 'heavy-only' : ''}`}
+                        style={{
+                            left: `${splash.left}%`,
+                            bottom: `${splash.bottom}%`,
+                            animationDelay: `${splash.delay}s`,
                             transform: `scale(${splash.scale})`
                         }}
                     />

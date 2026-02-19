@@ -7,6 +7,29 @@ html {
   overflow: hidden;
   background-color: #000;
   font-family: 'Courier New', Courier, monospace;
+
+  /* 真正的 8-bit 像素风常规指针 */
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M0 0v24l6-6h10z' fill='white'/%3E%3Cpath d='M0 0v26l2-2 5-5 5-5h10l-2-2h-9l-5 5-1 1V2h-5z' fill='black'/%3E%3Cpath d='M2 2v20l4-4h8l-12-16z' fill='white'/%3E%3Crect x='0' y='0' width='2' height='26' fill='black'/%3E%3Crect x='2' y='24' width='2' height='2' fill='black'/%3E%3Crect x='4' y='22' width='2' height='2' fill='black'/%3E%3Crect x='6' y='20' width='2' height='2' fill='black'/%3E%3Crect x='8' y='18' width='10' height='2' fill='black'/%3E%3Crect x='16' y='16' width='2' height='2' fill='black'/%3E%3Crect x='14' y='14' width='2' height='2' fill='black'/%3E%3Crect x='12' y='12' width='2' height='2' fill='black'/%3E%3Crect x='10' y='10' width='2' height='2' fill='black'/%3E%3Crect x='8' y='8' width='2' height='2' fill='black'/%3E%3Crect x='6' y='6' width='2' height='2' fill='black'/%3E%3Crect x='4' y='4' width='2' height='2' fill='black'/%3E%3Crect x='2' y='2' width='2' height='2' fill='black'/%3E%3C/svg%3E"), auto;
+}
+
+/* 真正的 8-bit 像素点击指针 (手型) */
+a,
+button,
+[style*='cursor: pointer'],
+.character-interactive-area {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='12' y='0' width='8' height='4' fill='black'/%3E%3Crect x='14' y='2' width='4' height='10' fill='white'/%3E%3Crect x='8' y='4' width='4' height='4' fill='black'/%3E%3Crect x='20' y='4' width='4' height='4' fill='black'/%3E%3Crect x='4' y='8' width='4' height='12' fill='black'/%3E%3Crect x='24' y='8' width='4' height='12' fill='black'/%3E%3Crect x='8' y='20' width='16' height='4' fill='black'/%3E%3Crect x='8' y='8' width='16' height='12' fill='white'/%3E%3C/svg%3E"), pointer !important;
+}
+
+/* 遮雨/雪状态 - 隐藏系统光标（使用自定义雨伞元素替代） */
+.umbrella-hover-zone.sheltered,
+.umbrella-hover-zone.sheltered .character-interactive-area {
+  cursor: none !important;
+}
+
+/* 像素风问号指针 (Help Cursor) */
+[style*='cursor: help'],
+.poppy-flower {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M0 0v24l6-6h10z' fill='white'/%3E%3Cpath d='M0 0v26l2-2 5-5 5-5h10l-2-2h-9l-5 5-1 1V2h-5z' fill='black'/%3E%3Crect x='18' y='2' width='8' height='2' fill='black'/%3E%3Crect x='16' y='4' width='2' height='6' fill='black'/%3E%3Crect x='26' y='4' width='2' height='6' fill='black'/%3E%3Crect x='18' y='10' width='8' height='2' fill='black'/%3E%3Crect x='22' y='12' width='2' height='4' fill='black'/%3E%3Crect x='22' y='18' width='2' height='2' fill='black'/%3E%3Crect x='18' y='4' width='8' height='6' fill='white'/%3E%3Crect x='22' y='10' width='2' height='8' fill='white'/%3E%3C/svg%3E"), help !important;
 }
 
 #root {
@@ -35,6 +58,17 @@ html {
 /* Weather darkening should affect background layers only (not UI/effects overlays). */
 .parity-container.weather-none {
   filter: none;
+  /* 回到晴天时使用更慢的过渡（5s） */
+  transition: filter 5s ease-in-out;
+}
+
+/* 晴天状态下子图层也使用 5s 过渡 */
+.parity-container.weather-none .layer {
+  transition: opacity 5s ease, filter 5s ease;
+}
+
+.parity-container.weather-none .weather-layer {
+  transition: opacity 5s ease;
 }
 
 .parity-container.weather-light,
@@ -102,6 +136,11 @@ html {
 .layer-grass-normal,
 .layer-grass-snow {
   z-index: 5;
+}
+
+/* 草地积雪层单独使用更缓的过渡，避免突然出现 */
+.layer-grass-snow {
+  transition: opacity 3s ease !important;
 }
 
 .weather-layer {
@@ -442,6 +481,320 @@ html {
   filter: drop-shadow(0 10px 4px rgba(0, 0, 0, 0.2));
 }
 
+/* 雨伞悬停检测区域 - 包裹角色，用 padding 向上延伸检测范围 */
+.umbrella-hover-zone {
+  position: relative;
+  /* 通过 padding 扩大悬停检测区域 */
+  padding: 120px 40px 10px 40px;
+  /* 负 margin 抵消 padding 对布局的影响 */
+  margin: -120px -40px -10px -40px;
+  z-index: 1;
+  /* 调试时取消注释查看区域 */
+  /* background: rgba(255, 0, 0, 0.1); */
+}
+
+/* 虞美人花 - 地面上生长 */
+.poppy-flower {
+  position: absolute;
+  right: -8px;
+  bottom: 82px;
+  width: 40px;
+  height: 40px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  /* Removed clip-path as it was hiding the flowers */
+  opacity: 0;
+  transform: scale(0);
+  transform-origin: bottom center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 花朵生长状态 */
+.poppy-flower.grow {
+  /* 生长完后，随机化摆动节奏 */
+  animation:
+    flowerGrow 3s ease-out forwards,
+    flowerSway var(--sway-dur, 3s) ease-in-out var(--sway-delay, 0s) infinite;
+}
+
+/* 花被摘下 - 原地淡出 */
+.poppy-flower.grow.picked {
+  animation: flowerPickFade 0.5s ease-out forwards;
+}
+
+/* 优化后的花朵长出 - 爆发感更强，减少杂乱旋转 */
+@keyframes flowerGrow {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1) skewX(-2deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) skewX(0deg);
+  }
+}
+
+/* 优化后的微风摇曳 - 使用 skew 代替 rotate，更加柔和自然 */
+@keyframes flowerSway {
+
+  0%,
+  100% {
+    transform: skewX(0deg) translateY(0);
+  }
+
+  50% {
+    transform: skewX(5.6deg) translateY(0.7px);
+  }
+}
+
+/* 花被捡起 - 原地缩小淡出 */
+@keyframes flowerPickFade {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+/* ================================ */
+/* 角色移动层 (char-mover)          */
+/* ================================ */
+.char-mover {
+  position: relative;
+  transform: translateX(0) scale(1);
+  transition: transform 1s ease-in-out, filter 0.5s ease;
+  transform-origin: bottom center;
+}
+
+/* 平滑滑向花的位置 */
+.char-mover.walking-to {
+  transform: translateX(30px) scale(1);
+}
+
+/* 弯腰捡花效果：轻微下蹲并前倾 */
+.char-mover.bending {
+  transform: translateX(30px) scaleY(0.8) scaleX(1.1) translateY(12px);
+  filter: brightness(0.9);
+}
+
+/* walking-back: 移除 walking-to 后 transition 自动滑回原点 */
+
+/* ================================ */
+/* 手持花（转身后显示在角色手部）    */
+/* ================================ */
+.flower-bob-wrapper {
+  position: absolute;
+  left: 10px;
+  bottom: 24px;
+  width: 42px;
+  height: 42px;
+  z-index: 10;
+  /* 速度加快一倍：2s -> 1s */
+  animation: heldFlowerBob 1s steps(1) infinite;
+}
+
+.held-flower {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: heldFlowerAppear 0.5s ease-out forwards;
+}
+
+@keyframes heldFlowerAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 模拟像素步进：上下颠倒节奏 */
+@keyframes heldFlowerBob {
+
+  0%,
+  49.9% {
+    transform: translateY(3px);
+  }
+
+  50%,
+  99.9% {
+    transform: translateY(0);
+  }
+}
+
+/* ==================== */
+/* 像素风格漫画对话框   */
+/* ==================== */
+
+/* ==================== */
+/* 精致像素 RPG 对话框  */
+/* ==================== */
+
+.pixel-dialog {
+  position: absolute;
+  z-index: 200;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+
+  /* 透明底风格：半透明黑底 + 白字 */
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+
+  /* 字体：使用宋体模拟像素点阵感 */
+  font-family: 'SimSun', '宋体', monospace;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 1.5;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 0 #000;
+  /* 文字描边增强可读性 */
+
+  /* 紧凑内边距 */
+  padding: 8px 10px;
+  min-width: 100px;
+  max-width: 160px;
+  text-align: left;
+
+  /* === 纯 CSS 绘制的像素圆角边框 === */
+  /* 利用 box-shadow 绘制 */
+  box-shadow:
+    /* 内层背景填充 (防止边框处透出) */
+    0 0 0 2px rgba(0, 0, 0, 0.6),
+    /* 浅灰色边框描边 */
+    -2px -2px 0 2px #ccc,
+    2px -2px 0 2px #ccc,
+    -2px 2px 0 2px #ccc,
+    2px 2px 0 2px #ccc,
+    /* 修正圆角的像素点 */
+    -4px 0 0 0 #ccc,
+    4px 0 0 0 #ccc,
+    0 -4px 0 0 #ccc,
+    0 4px 0 0 #ccc;
+
+  /* 留出边距给阴影 */
+  margin: 4px;
+  image-rendering: pixelated;
+}
+
+.pixel-dialog.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dialog-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dialog-icon {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+  animation: heldFlowerAppear 0.3s ease-out forwards;
+}
+
+.dialog-text {
+  display: inline-block;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  min-height: 1.2em;
+}
+
+/* 居中对话框 - 角色正上方 */
+.dialog-center {
+  left: 50%;
+  bottom: 125%;
+  transform: translateX(-50%) translateY(4px);
+  margin-bottom: 12px;
+}
+
+.pixel-dialog.dialog-center.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 左侧对话框 - 放在人左上方 */
+.dialog-left {
+  display: none;
+}
+
+/* 右侧对话框 - 放在人右上方 */
+.dialog-right {
+  display: none;
+}
+
+/* === 像素风小尾巴 (泡泡引脚) === */
+.dialog-center::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #ccc;
+  z-index: 201;
+  /* 尾巴居中指向下方 */
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+
+  /* 构造像素阶梯尾巴 - 指向下方 */
+  box-shadow:
+    0 4px 0 0 #ccc,
+    /* 尖端 */
+    -2px 0 0 0 #ccc,
+    /* 左宽 */
+    2px 0 0 0 #ccc,
+    /* 右宽 */
+    -2px 0 0 0 rgba(0, 0, 0, 0.6),
+    /* 填充背景 */
+    2px 0 0 0 rgba(0, 0, 0, 0.6);
+  /* 填充背景 */
+}
+
+.dialog-left::after,
+.dialog-right::after {
+  display: none;
+}
+
+/* 左对话框尾巴：指向右下 */
+/* .dialog-left::after {
+  right: -6px;
+  bottom: 6px;
+  box-shadow:
+    -4px 4px 0 0 #ccc,
+    -4px 0 0 0 rgba(0, 0, 0, 0.6),
+    -8px 4px 0 0 rgba(0, 0, 0, 0.6);
+} */
+
+/* 右对话框尾巴：指向左下 */
+/* .dialog-right::after {
+  left: -6px;
+  bottom: 6px;
+  box-shadow:
+    4px 4px 0 0 #ccc,
+    4px 0 0 0 rgba(0, 0, 0, 0.6),
+    8px 4px 0 0 rgba(0, 0, 0, 0.6);
+} */
+
 .pixel-character {
   /* Animation for slight floating or jump if needed */
   animation: char-float 12s ease-in-out infinite;
@@ -526,8 +879,320 @@ html {
   filter: brightness(1.05) contrast(1.02);
 }
 
+/* 高级像素爱心粒子 */
+.pixel-heart {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  image-rendering: pixelated;
+  /* 核心发光感 */
+  filter: drop-shadow(0 0 4px rgba(255, 77, 109, 0.8));
+}
+
+/* 随机颜色的爱心变体 */
+.pixel-heart.color-1 {
+  --heart-color: #ff4d6d;
+}
+
+.pixel-heart.color-2 {
+  --heart-color: #ff758f;
+}
+
+.pixel-heart.color-3 {
+  --heart-color: #c9184a;
+}
+
+.pixel-heart::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 4px;
+  background: var(--heart-color, #ff4d6d);
+  /* 精细的像素爱心构造 (5x5) */
+  box-shadow:
+    /* Row 1 */
+    4px -4px 0 0 var(--heart-color), 12px -4px 0 0 var(--heart-color),
+    /* Row 2 */
+    0px 0px 0 0 var(--heart-color), 4px 0px 0 0 var(--heart-color), 8px 0px 0 0 var(--heart-color), 12px 0px 0 0 var(--heart-color), 16px 0px 0 0 var(--heart-color),
+    /* Row 3 */
+    0px 4px 0 0 var(--heart-color), 4px 4px 0 0 var(--heart-color), 8px 4px 0 0 var(--heart-color), 12px 4px 0 0 var(--heart-color), 16px 4px 0 0 var(--heart-color),
+    /* Row 4 */
+    4px 8px 0 0 var(--heart-color), 8px 8px 0 0 var(--heart-color), 12px 8px 0 0 var(--heart-color),
+    /* Row 5 */
+    8px 12px 0 0 var(--heart-color);
+}
+
+/* 喷发动画：由中心向四周扩散并消失 */
+@keyframes heartScatter {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+    transform: translate(var(--tx), var(--ty)) scale(1.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx-end), var(--ty-end)) scale(0.5) rotate(var(--rot));
+  }
+}
+
+.heart-particle {
+  animation: heartScatter var(--dur) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
 /* 针对雪天场景的特定图层样式 - 模拟积雪效果 */
 .parity-container.weather-snow .layer-mountains {
   filter: brightness(2) grayscale(0.8) contrast(1.1);
   transition: filter 3s;
+}
+
+/* 花朵介绍弹窗 - 像素风格 */
+.flower-info-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+}
+
+.flower-info-box {
+  background: #222;
+  border: 4px solid #fff;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 160px;
+  position: relative;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6);
+  image-rendering: pixelated;
+}
+
+.flower-info-icon {
+  width: 40px;
+  height: 40px;
+  background: #333;
+  border: 2px solid #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.flower-info-icon img {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+}
+
+.flower-info-content {
+  color: #fff;
+}
+
+.flower-info-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.flower-info-hint {
+  font-size: 9px;
+  color: #888;
+  letter-spacing: 1px;
+}
+
+.flower-info-close {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  background: #ff4d6d;
+  border: 3px solid #000;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: transform 0.1s;
+}
+
+.flower-info-close:active {
+  transform: scale(0.9);
+}
+
+/* ================================ */
+/*  收下交互 (Accept Interaction)    */
+/* ================================ */
+
+/* 收下提示文本 - 转身后悬停显示 */
+.accept-hint {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background: #333;
+  color: #fff;
+  padding: 3px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: all 0.15s steps(2);
+  pointer-events: none;
+  font-family: 'SimSun', '宋体', monospace;
+  z-index: 101;
+  /* 像素边框效果 */
+  box-shadow:
+    0 -2px 0 0 #000,
+    0 2px 0 0 #000,
+    -2px 0 0 0 #000,
+    2px 0 0 0 #000,
+    0 0 0 2px #fff;
+}
+
+.character-interactive-area.can-accept:hover .accept-hint {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 接受后的“花朵往上弹”粒子 */
+.flower-accept-particle {
+  position: absolute;
+  left: 50%;
+  bottom: 80%;
+  width: 40px;
+  height: 40px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  image-rendering: pixelated;
+  z-index: 105;
+  animation: flowerPopUp 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes flowerPopUp {
+  0% {
+    transform: translateX(-50%) translateY(0) scale(0.5);
+    opacity: 0;
+  }
+
+  20% {
+    transform: translateX(-50%) translateY(-40px) scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-50%) translateY(-100px) scale(1.0);
+    opacity: 0;
+  }
+}
+
+/* 确保收下后取消特定的交互样式 */
+.char-mover.accepted .character-interactive-area {
+  cursor: default !important;
+}
+
+/* 对话框翻页提示器 */
+.dialogue-next-indicator {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  pointer-events: none;
+}
+
+.dialogue-next-arrow {
+  display: block;
+  font-size: 8px;
+  color: #fff;
+  animation: arrowBlink 0.8s steps(2) infinite;
+}
+
+@keyframes arrowBlink {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(2px);
+    opacity: 0;
+  }
+}
+
+/* ================================ */
+/*  天气交互扩展样式 (Weather Extension) */
+/* ================================ */
+
+/* 1. 湿润效果 - 下雨时应用 */
+.char-is-wet {
+  filter: saturate(1.4) brightness(0.85) contrast(1.1) !important;
+  transition: filter 2s ease;
+}
+
+/* 2. 雨水碰撞水花 (Rain Splashes on Character) */
+.char-splash {
+  position: absolute;
+  width: 4px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+  z-index: 101;
+  animation: splashBreak 0.4s ease-out forwards;
+}
+
+@keyframes splashBreak {
+  0% {
+    transform: scale(0.3) translateY(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.2) translateY(-4px);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0.5) translateY(-2px);
+    opacity: 0;
+  }
+}
+
+/* 3. 哈气效果 (Breath Effect) */
+.char-breath {
+  position: absolute;
+  width: 12px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.4);
+  filter: blur(2px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 102;
+  animation: breathFloat 3s ease-out infinite;
+}
+
+@keyframes breathFloat {
+  0% {
+    transform: translate(0, 0) scale(0.2);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.6;
+    transform: translate(10px, -5px) scale(1);
+  }
+
+  100% {
+    transform: translate(40px, -20px) scale(1.8);
+    opacity: 0;
+  }
 }

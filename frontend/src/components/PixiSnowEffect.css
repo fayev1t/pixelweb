@@ -8,12 +8,14 @@
     pointer-events: none;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 3s ease-in-out, visibility 3s ease-in-out;
+    transition: opacity 5s ease-in-out, visibility 5s ease-in-out;
 }
 
 .pixi-snow-container.active {
     opacity: 1;
     visibility: visible;
+    /* 淡入用 3s，淡出用基础的 5s */
+    transition: opacity 1.5s ease-in-out, visibility 1.5s ease-in-out;
 }
 
 /* Blizzard Whiteout Fog - Removed for cleaner pixel look */

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import './SnowEffect.css';
 
-const SnowEffect = ({ mode }) => {
+const SnowEffect = ({ mode, isSheltered }) => {
     // Determine target mode and if active
     // Active false for now as PIXI handles all snow modes better (pixel art style)
     const isActive = false;
@@ -39,6 +39,21 @@ const SnowEffect = ({ mode }) => {
 
     const isSnow = mode === 'snow';
 
+    // Character snow hits (gentle contact)
+    const charSnow = useMemo(() => Array.from({ length: 40 }).map((_, i) => ({
+        id: `char-snow-${i}`,
+        // Align with RainEffect: 51.5 - 53.5% (approx character width)
+        left: 51.5 + Math.random() * 2.0,
+        // Character bottom is 20-30%
+        bottom: 20 + Math.random() * 10,
+        delay: Math.random() * 2,
+        // Slide duration: 1.5s - 2.5s
+        duration: 1.5 + Math.random() * 1.0,
+        // Visible size: 2px - 4px
+        size: 2 + Math.random() * 2,
+        driftX: (Math.random() - 0.5) * 5
+    })), []);
+
     return (
         <div className={`snow-scene ${isActive ? 'active' : ''} ${mode}`}>
             <div className="snowflakes-layer">
@@ -55,6 +70,22 @@ const SnowEffect = ({ mode }) => {
                             animationDelay: `${flake.delay}s`,
                             opacity: flake.opacity,
                             '--drift': isSnow ? `${flake.drift * 8}px` : `${flake.drift}px`
+                        }}
+                    />
+                ))}
+                {/* Character Snow - gentle contact */}
+                {!isSheltered && charSnow.map((snow) => (
+                    <div
+                        key={snow.id}
+                        className="snowflake char-snow"
+                        style={{
+                            left: `${snow.left}%`,
+                            bottom: `${snow.bottom}%`,
+                            width: `${snow.size}px`,
+                            height: `${snow.size}px`,
+                            animationDelay: `${snow.delay}s`,
+                            animationDuration: `${snow.duration}s`,
+                            '--drift-x': `${snow.driftX}px`
                         }}
                     />
                 ))}

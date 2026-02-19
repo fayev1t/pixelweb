@@ -44,3 +44,42 @@
     transform: translate(var(--drift, 0px), 110vh);
   }
 }
+
+/* Character interaction snow - touch and slide */
+.snowflake.char-snow {
+  position: absolute;
+  top: auto;
+  bottom: 0;
+  background: white;
+  border-radius: 50%;
+  border: none;
+  /* Remove border, just white dot */
+  box-shadow: 0 0 2px rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  animation: snow-char-slide linear infinite;
+  z-index: 60;
+}
+
+@keyframes snow-char-slide {
+  0% {
+    opacity: 0;
+    /* Start from top-left (simulating -15deg angle incoming) */
+    transform: translate(-3px, -8px) scale(0.8);
+  }
+
+  10% {
+    opacity: 1;
+    /* Contact point */
+    transform: translate(0, 0) scale(1);
+  }
+
+  80% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+    /* Slide down and slightly right (gravity + wind) */
+    transform: translate(3px, 15px) scale(0.5);
+  }
+}

@@ -225,12 +225,20 @@ const PixelLightning = ({ onFlash }) => {
         return () => cancelAnimationFrame(frameId);
     }, [draw, generateLightning, resetState, onFlash]);
 
+    // 挂载时立即触发第一道闪电
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    }, []);
+
+        // 立刻生成一道闪电，不等随机
+        const state = animState.current;
+        state.segments = generateLightning();
+        state.phase = PHASES.IGNITE;
+        state.timer = 0;
+        lastPhaseRef.current = PHASES.IDLE; // 确保 onFlash 会被触发
+    }, [generateLightning]);
 
     return (
         <div className="layer-lightning">

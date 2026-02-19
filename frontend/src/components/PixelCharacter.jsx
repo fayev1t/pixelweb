@@ -11,7 +11,8 @@ const PixelCharacter = ({
     fps = 8,
     scale = 4,
     className = "",
-    style = {}
+    style = {},
+    children
 }) => {
     const [frameIndex, setFrameIndex] = useState(0);
     const frameCount = 10;
@@ -48,6 +49,7 @@ const PixelCharacter = ({
                 position: 'relative',
                 width: frameSize * scale,
                 height: frameSize * scale,
+                '--frame-index': frameIndex,
                 ...style
             }}
         >
@@ -70,6 +72,7 @@ const PixelCharacter = ({
                     />
                 );
             })}
+            {children}
         </div>
     );
 };

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import musicFile from '../assets/music/welcomeandgoodbye.mp3';
 import { parseLRC } from '../utils/lrcParser.js';
 
-const AudioPlayer = ({ weather }) => {
+const AudioPlayer = ({ weather, onTimeUpdate, showFlower }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef(null);
     const [lyrics, setLyrics] = useState([]);
@@ -33,8 +33,11 @@ const AudioPlayer = ({ weather }) => {
 
         const update = () => {
             if (audioRef.current && !audioRef.current.paused) {
+                const rawTime = audioRef.current.currentTime;
                 // Add 0.4s offset to make lyrics appear earlier (faster response)
-                setCurrentTime(audioRef.current.currentTime + 0.4);
+                setCurrentTime(rawTime + 0.4);
+                // 将原始时间传递给父组件用于自动天气切换
+                if (onTimeUpdate) onTimeUpdate(rawTime);
                 animationFrameId = requestAnimationFrame(update);
             }
         };
@@ -144,7 +147,6 @@ const AudioPlayer = ({ weather }) => {
             <audio
                 ref={audioRef}
                 src={musicFile}
-                loop
                 onTimeUpdate={handleTimeUpdate} // Keep for paused state updates
             />
 
@@ -168,16 +170,18 @@ const AudioPlayer = ({ weather }) => {
             {/* STATE 2: Playing - mini bar + floating lyrics */}
             {isPlaying && (
                 <>
-                    {/* Mini player bar */}
-                    <div className="player-mini-bar" onClick={togglePlay}>
-                        <span className="player-mini-icon playing">
-                            <span className="bar b1"></span>
-                            <span className="bar b2"></span>
-                            <span className="bar b3"></span>
-                        </span>
-                        <span className="player-mini-title">Welcome & Goodbye</span>
-                        <span className="player-mini-pause">II</span>
-                    </div>
+                    {/* Mini player bar - Hide ONLY in the final sunny scene (when flowers are out) */}
+                    {!(weather === 'none' && showFlower) && (
+                        <div className="player-mini-bar" onClick={togglePlay}>
+                            <span className="player-mini-icon playing">
+                                <span className="bar b1"></span>
+                                <span className="bar b2"></span>
+                                <span className="bar b3"></span>
+                            </span>
+                            <span className="player-mini-title">Welcome & Goodbye</span>
+                            <span className="player-mini-pause">II</span>
+                        </div>
+                    )}
 
                     {/* Floating lyric line */}
                     {visualLyric && (
