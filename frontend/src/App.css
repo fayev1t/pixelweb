@@ -53,6 +53,29 @@ button,
   overflow: hidden;
   background-color: #050505;
   transition: filter 3s ease-in-out;
+  isolation: isolate;
+}
+
+.parity-container::before,
+.parity-container::after {
+  content: '';
+  position: absolute;
+  inset: -2%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 2.8s ease, background 2.8s ease;
+}
+
+.parity-container::before {
+  z-index: 2;
+  mix-blend-mode: multiply;
+  animation: weather-sky-drift 28s linear infinite;
+}
+
+.parity-container::after {
+  z-index: 7;
+  mix-blend-mode: screen;
+  animation: weather-front-drift 14s linear infinite;
 }
 
 /* Weather darkening should affect background layers only (not UI/effects overlays). */
@@ -71,17 +94,109 @@ button,
   transition: opacity 5s ease;
 }
 
-.parity-container.weather-light,
-.parity-container.weather-flurry {
-  filter: grayscale(0.45) brightness(0.72) contrast(0.95);
+.parity-container.weather-none::before {
+  opacity: 0.26;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(120% 80% at 78% 12%, rgba(255, 226, 174, 0.35) 0%, rgba(255, 226, 174, 0.08) 40%, transparent 70%),
+    linear-gradient(to bottom, rgba(255, 247, 224, 0.22) 0%, rgba(255, 255, 255, 0.05) 42%, rgba(255, 238, 201, 0.08) 100%);
+}
+
+.parity-container.weather-none::after {
+  opacity: 0.14;
+  background:
+    radial-gradient(50% 26% at 30% 72%, rgba(255, 237, 187, 0.2) 0%, transparent 70%),
+    linear-gradient(115deg, transparent 0 45%, rgba(255, 255, 255, 0.12) 50%, transparent 55% 100%);
+  animation-duration: 20s;
+}
+
+.parity-container.weather-light {
+  filter: grayscale(0.36) brightness(0.76) contrast(0.97) saturate(0.82);
+}
+
+.parity-container.weather-light::before {
+  opacity: 0.52;
+  background: linear-gradient(to bottom,
+      rgba(36, 56, 78, 0.58) 0%,
+      rgba(24, 38, 58, 0.18) 45%,
+      rgba(18, 28, 44, 0.46) 100%);
+}
+
+.parity-container.weather-light::after {
+  opacity: 0.34;
+  background:
+    linear-gradient(108deg,
+      transparent 0 24%,
+      rgba(190, 214, 234, 0.14) 27%,
+      transparent 30% 58%,
+      rgba(167, 198, 224, 0.12) 61%,
+      transparent 64% 100%),
+    radial-gradient(55% 26% at 50% 94%, rgba(158, 183, 206, 0.14) 0%, transparent 80%);
+  animation-duration: 11s;
 }
 
 .parity-container.weather-heavy {
-  filter: grayscale(0.68) brightness(0.4) contrast(1.06) saturate(0.72);
+  filter: grayscale(0.66) brightness(0.46) contrast(1.08) saturate(0.75);
+}
+
+.parity-container.weather-heavy::before {
+  opacity: 0.78;
+  background: linear-gradient(to bottom,
+      rgba(8, 14, 24, 0.82) 0%,
+      rgba(11, 18, 30, 0.5) 38%,
+      rgba(6, 11, 19, 0.84) 100%);
+}
+
+.parity-container.weather-heavy::after {
+  opacity: 0.56;
+  background:
+    repeating-linear-gradient(104deg,
+      rgba(188, 211, 232, 0.08) 0 10px,
+      transparent 10px 30px),
+    radial-gradient(65% 35% at 50% 110%, rgba(150, 175, 196, 0.25) 0%, transparent 74%);
+  animation-duration: 7s;
+}
+
+.parity-container.weather-flurry {
+  filter: grayscale(0.42) brightness(0.74) contrast(1.03) saturate(0.82);
+}
+
+.parity-container.weather-flurry::before {
+  opacity: 0.58;
+  mix-blend-mode: screen;
+  background: linear-gradient(to bottom,
+      rgba(202, 220, 236, 0.22) 0%,
+      rgba(136, 161, 184, 0.12) 36%,
+      rgba(112, 138, 160, 0.26) 100%);
+}
+
+.parity-container.weather-flurry::after {
+  opacity: 0.4;
+  background:
+    radial-gradient(56% 30% at 50% 94%, rgba(214, 230, 242, 0.24) 0%, transparent 78%),
+    linear-gradient(120deg, transparent 0 38%, rgba(228, 238, 248, 0.18) 44%, transparent 50% 100%);
+  animation-duration: 10s;
 }
 
 .parity-container.weather-snow {
-  filter: grayscale(0.62) brightness(0.44) contrast(1.08) saturate(0.75);
+  filter: grayscale(0.52) brightness(0.58) contrast(1.07) saturate(0.86);
+}
+
+.parity-container.weather-snow::before {
+  opacity: 0.68;
+  mix-blend-mode: screen;
+  background: linear-gradient(to bottom,
+      rgba(230, 240, 250, 0.35) 0%,
+      rgba(171, 191, 212, 0.16) 45%,
+      rgba(145, 171, 194, 0.34) 100%);
+}
+
+.parity-container.weather-snow::after {
+  opacity: 0.52;
+  background:
+    radial-gradient(72% 35% at 50% 106%, rgba(234, 244, 252, 0.35) 0%, transparent 72%),
+    linear-gradient(108deg, transparent 0 28%, rgba(237, 246, 255, 0.17) 36%, transparent 44% 100%);
+  animation-duration: 9s;
 }
 
 .layer {
@@ -116,6 +231,26 @@ button,
   animation-duration: 200s;
 }
 
+.parity-container.weather-none .layer-sky {
+  animation-duration: 220s;
+}
+
+.parity-container.weather-light .layer-sky {
+  animation-duration: 182s;
+}
+
+.parity-container.weather-heavy .layer-sky {
+  animation-duration: 118s;
+}
+
+.parity-container.weather-flurry .layer-sky {
+  animation-duration: 160s;
+}
+
+.parity-container.weather-snow .layer-sky {
+  animation-duration: 145s;
+}
+
 .layer-mountains {
   z-index: 3;
 }
@@ -126,6 +261,28 @@ button,
 
 .layer-grass {
   z-index: 5;
+}
+
+.parity-container.weather-light .layer-mountains {
+  filter: brightness(0.88) saturate(0.9);
+}
+
+.parity-container.weather-heavy .layer-mountains {
+  filter: brightness(0.78) contrast(1.1);
+}
+
+.parity-container.weather-heavy .layer-hills,
+.parity-container.weather-heavy .layer-grass {
+  filter: brightness(0.86) contrast(1.04);
+}
+
+.parity-container.weather-flurry .layer-mountains {
+  filter: brightness(0.86) saturate(0.76);
+}
+
+.parity-container.weather-snow .layer-grass,
+.parity-container.weather-snow .layer-hills {
+  filter: brightness(1.08) contrast(1.04);
 }
 
 .layer-hills-normal,
@@ -184,6 +341,30 @@ button,
 
   to {
     background-position: 1050px 0;
+  }
+}
+
+@keyframes weather-sky-drift {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-3%);
+  }
+}
+
+@keyframes weather-front-drift {
+  0% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(-2%) translateY(1%);
+  }
+
+  100% {
+    transform: translateX(-4%);
   }
 }
 
@@ -977,7 +1158,7 @@ button,
 
 /* 针对雪天场景的特定图层样式 - 模拟积雪效果 */
 .parity-container.weather-snow .layer-mountains {
-  filter: brightness(2) grayscale(0.8) contrast(1.1);
+  filter: brightness(1.28) grayscale(0.72) contrast(1.08);
   transition: filter 3s;
 }
 

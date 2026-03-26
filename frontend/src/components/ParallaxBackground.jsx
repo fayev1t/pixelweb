@@ -130,7 +130,9 @@ const ParallaxBackground = ({
                     style={{ pointerEvents: isAccepted ? 'none' : 'auto' }}
                 >
                     {/* 角色移动包装器 */}
-                    <div className={`char-mover ${charPhase} ${isBending ? 'bending' : ''} ${isAccepted ? 'accepted' : ''} ${isRaining && !isSheltered ? 'char-is-wet' : ''}`}>
+                    <div
+                        className={`char-mover ${charPhase} ${isBending ? 'bending' : ''} ${isAccepted ? 'accepted' : ''} ${isRaining && !isSheltered ? 'char-is-wet' : ''} ${weather === 'heavy' && !isSheltered ? 'char-in-storm' : ''} ${isSnowing && !isSheltered ? 'char-is-cold' : ''}`}
+                    >
                         <div
                             className={`character-interactive-area ${orientation === 0 && !isAccepted ? 'can-accept' : ''}`}
                             style={{
@@ -206,6 +208,14 @@ const ParallaxBackground = ({
                                 scale={5}
                                 fps={5}
                             />
+
+                            {isSnowing && !isSheltered && (
+                                <div className={`char-breath-layer ${weather === 'snow' ? 'snow' : 'flurry'}`} aria-hidden="true">
+                                    <span className="char-breath puff-1" />
+                                    <span className="char-breath puff-2" />
+                                    <span className="char-breath puff-3" />
+                                </div>
+                            )}
 
                             {/* 手持花 - 可点击查看信息 */}
                             {holdingFlower && orientation === 0 && !isAccepted && (

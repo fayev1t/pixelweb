@@ -1,47 +1,38 @@
 # Repository Guidelines
 
-This repository includes a Vite/React frontend and a minimal Flask server that serves the built static files.
-
 ## Project Structure & Module Organization
-- `frontend/` contains the web app.
-- `frontend/src/main.jsx` and `frontend/src/App.jsx` are the frontend entry points.
-- `frontend/src/components/` stores UI modules (for example `ParallaxBackground.jsx`, `RainEffect.jsx`, `AudioPlayer.jsx`).
-- `frontend/src/assets/` stores runtime images and audio.
-- `backend/app.py` serves `frontend/dist/` on Flask.
-- `character/` and `backgrand/` keep source artwork; sync updates into `frontend/src/assets/` when art changes.
+- `src/main.jsx` boots the app, and `src/App.jsx` is the top-level scene container.
+- Reusable UI/effects live in `src/components/` (for example `ParallaxBackground.jsx`, `RainEffect.jsx`, `PixiSnowEffect.jsx`).
+- Shared constants and helpers are in `src/constants/` and `src/utils/`.
+- Runtime media is stored in `src/assets/` (`background/`, `character/`, `music/`).
+- `public/` holds static passthrough files, and `dist/` is generated build output.
+- Related repo paths: Flask server in `../backend/app.py`, source art in `../character/` and `../backgrand/`, utility scripts in `../scripts/`.
 
 ## Build, Test, and Development Commands
-Run from `frontend/` unless noted:
-- `npm install` installs dependencies.
-- `npm run dev` starts the Vite dev server with HMR.
-- `npm run build` creates production output in `frontend/dist/`.
-- `npm run preview` serves the built app locally.
-- `npm run lint` runs ESLint for JS/JSX.
+Run from `frontend/`:
+- `npm install`: install dependencies.
+- `npm run dev`: start Vite with hot reload.
+- `npm run build`: create production assets in `dist/`.
+- `npm run preview`: preview the production build locally.
+- `npm run lint`: run ESLint (`eslint .`) on JS/JSX.
 
-Backend (from repo root):
-- `python backend/app.py` starts Flask on port `5000` and serves built frontend files.
+Production-style local serving:
+- `python ../backend/app.py`: serves `frontend/dist/` on port `5000`.
 
 ## Coding Style & Naming Conventions
-- Use 2-space indentation, semicolons, and single quotes in JS/JSX.
-- Name React components with PascalCase and matching filenames (example: `AudioPlayer.jsx`).
-- Use kebab-case CSS class names in co-located stylesheets (example: `RainEffect.css`).
-- Follow `frontend/eslint.config.js`; fix lint issues before opening a PR.
-- Use 4-space indentation in Python (`backend/app.py`).
+- Use functional React components and ES modules.
+- Use 2-space indentation for JS/JSX/CSS; use 4 spaces in Python files.
+- Prefer single quotes and semicolons in JS/JSX.
+- Component filenames use PascalCase (`AudioPlayer.jsx`), utility files use camelCase (`lrcParser.js`), and CSS classes stay kebab-case.
+- Follow `eslint.config.js`; resolve lint issues before opening a PR.
 
 ## Testing Guidelines
-- No test runner is currently configured.
-- If you add tests, add a `test` script in `frontend/package.json` and document setup in `README.md`.
-- Prefer names like `*.test.jsx` or `*.spec.jsx`.
+- No automated test suite is configured yet.
+- Minimum validation for each change: `npm run lint` and `npm run build`.
+- For UI changes, manually verify weather modes, animation playback, layering, and audio controls.
+- If adding tests, colocate with source files and use `*.test.jsx`.
 
 ## Commit & Pull Request Guidelines
-- Keep commits concise, imperative, and scoped to one change.
-- If you adopt prefixes like `feat:` or `fix:`, use them consistently.
-- PRs should include:
-  - Change summary and user impact
-  - Linked issue/ticket
-  - Screenshots or GIFs for UI updates
-  - Verification notes (for example: `npm run lint`, `npm run build`)
-
-## Build Artifacts
-- Do not edit `frontend/dist/` manually.
-- Rebuild with `npm run build` after UI or asset changes.
+- History currently mixes styles (`first commit`, `feat: ...`); use concise, imperative messages with scope going forward (example: `frontend: refine umbrella shield collision`).
+- PRs should include: summary, affected paths, validation commands run, linked issue/ticket, and screenshots/GIFs for visual updates.
+- Keep commits focused; separate logic changes from asset-only updates when practical.
